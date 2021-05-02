@@ -137,7 +137,6 @@ int setVar(char **args) {
     printf("Error: Invlaid variable assignment. Expected \"Variable = value\"\n"); 
     return 1;
   }
-  
 }
 
 int listVar(char **args) {
