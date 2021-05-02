@@ -52,6 +52,66 @@ char **shell_scanner(char *input) {
 }
 
 
+
+
+//parser
+
+//pass results of scanner to parser
+//don't forget print out error messages 
+
+
+//function to build list of tokens 
+//when scanner returns end of line indication: use list to analyze command
+
+
+
+//is it a command?
+  //#
+
+  //cd
+
+  //variable
+
+  //lv
+
+  //unset variable
+  
+  // !f
+    //fork 
+      //after forking, parent should wait for command it has just 
+      //started to complete before issuing a promt for next command
+
+      //if includes: infrom or outto
+        //the child processs hould first attempt to open or create the named file(s)
+        //if successful
+          //close the indicated file descriptor (standard input or standard output: 0 or 1)
+          //and re-associate the descriptor number(s) with the newly opened file(s). (look at man for dup2) 
+          //then can execve
+
+    //execve new process to execute given file
+
+  //quit
+
+
+//built in variables?
+
+  //PATH
+
+  //CWD
+
+  //PS
+
+
+//Name of program to run?
+
+
+//is a parameter of command?
+
+
+
+
+
+
 /*
 char **shell_scanner(char *input) {
   char *line = input;
