@@ -20,8 +20,10 @@ struct variable {
  char *value;
 };
 
-// Global array for variables
-struct variable varArray[MAX_VARS];
+// Global array for variables. varArray[0] = PATH, varArray[1] = CWD,
+// PS = varArray[2]
+variable varArray[MAX_VARS];
+int count = 3;
 
 // Fgets wrapper
 char *Fgets(char *ptr, int n, FILE *stream) {
@@ -31,6 +33,7 @@ char *Fgets(char *ptr, int n, FILE *stream) {
   return rptr;
 }
 
+// Takes the user input and makes them into seperate tokens
 char **shell_scanner(char *input) {
   int bufsize = TOKEN_BUFSIZE;
   int pos = 0;
@@ -61,6 +64,7 @@ char **shell_scanner(char *input) {
   return tokens;
 }
 
+// Changes the current working directory
 int changeDir(char **args) {
   if (args[1] == NULL)
     printf("Error: Expected an argument for cd\n");
@@ -68,12 +72,14 @@ int changeDir(char **args) {
     if (chdir(args[1]) != 0)
       printf("Error: Invalid directory\n");
     // Update the value of CWD
-    if (getcwd(CWD, sizeof(CWD) == NULL)
+    if (getcwd(varArray[1].value, sizeof(varArray[1].value) == NULL)
         printf("Error: getcwd failure\n");
   }
   return 1;
 }
 
+// Tests if there are any '#' characters. If there are, it tests if it is used
+// properly or if it is a syntax error.
 int isComment(char **args) {
   char *p;
   int foundHash = 0;
@@ -131,12 +137,14 @@ int fetchVar(char **args) {
 // If the first token is alphanumerical with its first character being a letter, AND the second
 // token is "=", then set variable. Note that if "variable = value" has no spaces, (e.g.
 // "variable=value") then it is a syntax error for an unknown command.
+// The only built-in variable that explictly cannot be changed according to the assignment, is CWD.
 int setVar(char **args) {
   // Test if there are 3 tokens. If not, it is an invalid variable assignment.
   if (sizeof(args) != 3) {
     printf("Error: Invlaid variable assignment. Expected \"Variable = value\"\n"); 
     return 1;
   }
+  
 }
 
 int listVar(char **args) {
@@ -210,7 +218,7 @@ void shell_loop(void){
   int x;
 
   do {
-    printf(">> ");
+    printf("%s",PS);
     Fgets(input, MAX, stdin);
     args = shell_scanner(input);
     x = shell_execute(args);
@@ -221,7 +229,16 @@ void shell_loop(void){
 }
 
 int main(int argc, char **argv) {
-
+  // Create built-in variables
+  varArray[0].name = "PATH";
+  varArray[0].value = "/bin:/usr/bin"
+  varArray[1].name = "CWD";
+  getcwd(varArray[1].value, sizeof(varArray[1].value));
+  varArray[2].name = "PS";
+  varArray[2].value = ">> ";
+  
+  
+ 
   shell_loop();
 
 }
