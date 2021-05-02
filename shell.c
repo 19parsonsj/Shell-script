@@ -18,10 +18,10 @@ void dieWithError(char *);
 struct variable {
  char *name;
  char *value;
-}
+};
 
 // Global array for variables
-variable varArray[MAX_VARS];
+struct variable varArray[MAX_VARS];
 
 // Fgets wrapper
 char *Fgets(char *ptr, int n, FILE *stream) {
