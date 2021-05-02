@@ -13,6 +13,15 @@
 
 void dieWithError(char *);
 
+// Structure for the variables
+struct variable {
+ char *name;
+ char *value;
+}
+
+// Global array for variables
+
+
 // Fgets wrapper
 char *Fgets(char *ptr, int n, FILE *stream) {
   char *rptr;
@@ -80,11 +89,53 @@ int isComment(char **args) {
     return 1;
   else {
    printf("Error: Unexpected character \"#\"\n");
-   return 1;
+   return -1;
   }
 }
 
+// Test if any tokens are labeled as variables. If they are, repalce that token with
+// their associated variable values. If the variable is not declared, syntax error.
+int fetchVar(char **args) {
+  char *p;
+  int foundSign = 0;
+  //Search the tokens for any $. If it is found, it should be the very first char
+  // in any given token. The next char should be a letter according to variable assignment
+  // rules. If it isn't, it's a syntax error.
+  for (int i = 0; i < sizeof(args); i++)
+    if (p = strchr(args[i],'$') != NULL) {
+      if (args[i][0] != '$') {
+        printf("Error: Unexpected use of '$' character.\n");
+        return -1;
+      }
+      // Else if the second character is NOT a letter
+      else if ( !(isalpha(args[i][1])) ) {
+        printf("Error: Invalid use of '$'");
+        return -1;
+      }
+    }
+  
+  // If a "$" wasn't found, return 0. 
+  if (foundSign == 0)
+    return 0;
+  
+  
+  
+  else if (args[0][0] == '#')
+    return 1;
+  else {
+   printf("Error: Unexpected character \"#\"\n");
+   return 1;
+}
+
+// If the first token is alphanumerical with its first character being a letter, AND the second
+// token is "=", then set variable. Note that if "variable = value" has no spaces, (e.g.
+// "variable=value") then it is a syntax error for an unknown command.
 int setVar(char **args) {
+  // Test if there are 3 tokens. If not, it is an invalid variable assignment.
+  if (sizeof(args) != 3) {
+    printf("Error: Invlaid variable assignment. Expected \"Variable = value\"\n"); 
+    return 1;
+  }
   
 }
 
@@ -152,68 +203,9 @@ int unsetVar(char **args) {
 //is a parameter of command?
 
 
-
-
-
-
-/*
-char **shell_scanner(char *input) {
-  char *line = input;
-  int numTokens = 0;
-  int bufSize = TOKEN_BUFSIZE;
-  char **tokens = malloc(bufSize * sizeof(char*));
-//  char *tokens[bufSize];
-  for (;;) {
-    while (isspace(*line))
-      line++;
-    if (*line == '\0')
-      break;
-
-    if (*line == '"') {
-      int doubQuote = *line++;
-      int i = 0;
-      char token[MAX];
-      while (*line == doubQuote) {
-        line++;
-        token[i] = *line;
-       // token++;
-        i++;
-      }
-      if (*line == '\0')
-        dieWithError("single double quote in input");
-      line++;
-      printf("We got here\n");
-      tokens[numTokens] = token;
-      printf("And we got here\n");
-      numTokens++;
-      continue;
-    }
-    if (isalnum(*line)) {
-      char token[MAX];
-      int i = 0;
-      while (isalnum(*line)) {
-        token[i] = *line;
-        //token++;
-        line++;
-        i++;
-      }
-      tokens[numTokens] = token;
-      numTokens++;
-      continue;
-    }
-    dieWithError("Illegeal character");
-  }
-
-  for (int i = 0; i < numTokens; i++)
-    printf("Token %d: %s\n",i,tokens[i]);
-
-  return tokens;
-}
-*/
-
 void shell_loop(void){
 
-  char input[MAX];
+  char *input = (char*)malloc(MAX);
   char **args;
   int x;
 
@@ -221,8 +213,9 @@ void shell_loop(void){
     printf(">> ");
     Fgets(input, MAX, stdin);
     args = shell_scanner(input);
-//    x = shell_execute(args);
+    x = shell_execute(args);
 
+    free(input)
     free(args);
   } while(x);
 }
