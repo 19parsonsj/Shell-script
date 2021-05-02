@@ -51,7 +51,51 @@ char **shell_scanner(char *input) {
   return tokens;
 }
 
+int changeDir(char **args) {
+  if (args[1] == NULL)
+    printf("Error: Expected an argument for cd\n");
+  else {
+    if (chdir(args[1]) != 0)
+      printf("Error: Invalid directory\n");
+    // Update the value of CWD
+    if (getcwd(CWD, sizeof(CWD) == NULL)
+        printf("Error: getcwd failure\n");
+  }
+  return 1;
+}
 
+int isComment(char **args) {
+  char *p;
+  int foundHash = 0;
+  //Search the strings for a #
+  for (int i = 0; i < sizeof(args); i++)
+    if (p = strchr(args[i],'#') != NULL)
+      foundHash = 1;
+  
+  // If a "#" wasn't found, return 0. If it was found, it should be the very first char
+  // in the first token. If it isn't, it's a syntax error
+  if (foundHash == 0)
+    return 0;
+  else if (args[0][0] == '#')
+    return 1;
+  else {
+   printf("Error: Unexpected character \"#\"\n");
+   return 1;
+  }
+}
+
+int setVar(char **args) {
+  
+}
+
+int listVar(char **args) {
+  
+}
+
+// Remeber it is an error to unset a built in variable
+int unsetVar(char **args) {
+  
+}
 
 
 //parser
