@@ -8,6 +8,7 @@
 #include <ctype.h>
 
 #define MAX 256
+#define MAX_VARS 64
 #define TOKEN_BUFSIZE 64
 #define TOKEN_WHITESPACE " \t\n\r"
 
@@ -20,7 +21,7 @@ struct variable {
 }
 
 // Global array for variables
-
+variable varArray[MAX_VARS];
 
 // Fgets wrapper
 char *Fgets(char *ptr, int n, FILE *stream) {
