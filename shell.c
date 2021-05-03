@@ -23,7 +23,7 @@ struct variable {
 // Global array for variables. varArray[0] = PATH, varArray[1] = CWD,
 // PS = varArray[2]
 struct variable varArray[MAX_VARS];
-int count = 3;
+int countVar = 3;
 
 // Fgets wrapper
 char *Fgets(char *ptr, int n, FILE *stream) {
@@ -84,7 +84,7 @@ int isComment(char **args) {
   char *p;
   int foundHash = 0;
   //Search the strings for a #
-  for (int i = 0; i < sizeof(args); i++)
+  for (int i = 0; i < (sizeof(args)/sizeof(args[0]); i++)
     if (p = strchr(args[i],'#') != NULL)
       foundHash = 1;
   
@@ -96,43 +96,100 @@ int isComment(char **args) {
     return 1;
   else {
    printf("Error: Unexpected character \"#\"\n");
-   return -1;
+   return 1;
   }
 }
 
 // Test if any tokens are labeled as variables. If they are, repalce that token with
 // their associated variable values. If the variable is not declared, syntax error.
 int fetchVar(char **args) {
-  char *p;
-  int foundSign = 0;
-  //Search the tokens for any $. If it is found, it should be the very first char
-  // in any given token. The next char should be a letter according to variable assignment
-  // rules. If it isn't, it's a syntax error.
-  for (int i = 0; i < sizeof(args); i++)
-    if (p = strchr(args[i],'$') != NULL) {
-      if (args[i][0] != '$') {
-        printf("Error: Unexpected use of '$' character.\n");
-        return -1;
+  
+  int foundSigns = 0;
+  //Search the tokens for any $. If it is found, the next char should be a letter
+  // according to variable assignment rules. If it isn't, it's a syntax error.
+  for (int j = 0; j < (sizeof(args)/sizeof(args[0]); j++)
+    char *point;
+    int doAgain = 0;
+    char newToken[MAX];
+    char newTokenPiece[MAX];
+    int numVars = 0;
+    int position[MAX];
+    // If strchr() finds a '$' in a token, go into a while loop that is able to detect multiple
+    // variables in a token. It also catches any error and replaces the variables names with
+    // their values in **args
+    while (doAgain == 1) {
+      if (point = strchr(args[j],'$') != NULL) {
+        foundSigns++;
+        char varName[MAX];
+        int i = 0;
+        char *ptr = point;
+        // Get the variable name
+        // First char will be '$', so do the first pattern outside the loop.
+        varName[i] = *point;
+        i++;
+        point++;
+        // the variable is made up of numbers and letters, so just look for the first non
+        // alpha-numerical character after the initial '$'
+        while(isalnum(*point)) {
+          varName[i] = *point;
+          i++;
+          point++;
+        }
+        varName[i] = '\0';
+        
+        // If i==1, then that means '$' was used with non alpha-numeric characters immediately after
+        // it. According to our variable rules, the first character of a variable is a letter, thus,
+        // this would imply an incorrect use of the '$' symbol, regardless of what the user is doing.
+        if (i == 1) {
+          printf("Error: Incorrect usage of the '$' character.");
+        }
+     
+        // Create a token piece which contains any characters before the variable in the
+        // original token
+        position[numVars] = ptr - p;
+        for (int k = 0; k < position[numVars]; k++) {
+          newTokenPiece[k] = *point;
+          p++;
+        }
+       
+        strcat(newToken, newTokenPiece);
+        // Now we have the variable's name in varName. Search for the associated variable's value
+        // in varArray. If it doesn't exist, it's an error for undefined variable.
+        int foundMatches = 0;
+        for (int k = 0; k < countVar; k++) {
+          if (strcmp(varArray[k].name,varName) == 0) {
+            strcat(newToken, varArray[k].value);
+            foundMatches++;
+          }
+        }
+        
+        // At this point, we know there is at leas one '$' character in the token. However,
+        // if we don't get any matches in our variable array, it means the variable is
+        // undefined, resulting in an error.
+        if (foundMatches == 0) {
+          printf("Error: Undefined variable.");
+          return 1;
+        }
+       
+        // If we are not at the NULL byte of the token, there is still more in the token. We should
+        // thus check for more variables in this one token. If the NULL byte is there, then the new
+        // token should replace the old one in **args.
+        if (*point == '\0') {
+          doAgain = 0;
+          args[j] = newToken
+        }
+        else
+          p = point;
       }
-      // Else if the second character is NOT a letter
-      else if ( !(isalpha(args[i][1])) ) {
-        printf("Error: Invalid use of '$'");
-        return -1;
-      }
+      // If there is no '$' character detected, exit the while loop and move to the next token
+      else
+        doAgain = 0;
     }
-  
-  // If a "$" wasn't found, return 0. 
-  if (foundSign == 0)
-    return 0;
-  
-  
-  
-  else if (args[0][0] == '#')
-    return 1;
-  else {
-   printf("Error: Unexpected character \"#\"\n");
-   return 1;
-}
+  }
+  // We're finally out of the for loop, and can now return. The while loop detects if the user
+  // incorrectly used a '$' and if the variable name is not found, so there is no need to check for
+  // any errors here. We can simply return normally.
+  return 1;
 }
 
 // If the first token is alphanumerical with its first character being a letter, AND the second
@@ -203,20 +260,20 @@ int exit(char **args) {
 int shell_execute(char **args) {
 
 
-  if (args[0] == '#') 
-   return isComment(args);
+  if (isComment(args) == 1) 
+    return isComment(args);
   
   else if (args[0] == 'cd') 
-   return changeDir(args);
+    return changeDir(args);
    
   else if (args[0] == 'lv') 
-   return listVar(args);
+    return listVar(args);
   
   else if (args[0] == '!') 
     return execute_program(args);
     
   else if (args[0] == 'unset'){
-   return unsetVar(args);
+    return unsetVar(args);
   }
 
   else if (args[0] == 'quit' || args[0] == '^D')
