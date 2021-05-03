@@ -22,7 +22,7 @@ struct variable {
 
 // Global array for variables. varArray[0] = PATH, varArray[1] = CWD,
 // PS = varArray[2]
-variable varArray[MAX_VARS];
+struct variable varArray[MAX_VARS];
 int count = 3;
 
 // Fgets wrapper
@@ -72,7 +72,7 @@ int changeDir(char **args) {
     if (chdir(args[1]) != 0)
       printf("Error: Invalid directory\n");
     // Update the value of CWD
-    if (getcwd(varArray[1].value, sizeof(varArray[1].value) == NULL)
+    if (getcwd(varArray[1].value, sizeof(varArray[1].value) == NULL))
         printf("Error: getcwd failure\n");
   }
   return 1;
@@ -133,6 +133,7 @@ int fetchVar(char **args) {
    printf("Error: Unexpected character \"#\"\n");
    return 1;
 }
+}
 
 // If the first token is alphanumerical with its first character being a letter, AND the second
 // token is "=", then set variable. Note that if "variable = value" has no spaces, (e.g.
@@ -144,42 +145,38 @@ int setVar(char **args) {
     printf("Error: Invlaid variable assignment. Expected \"Variable = value\"\n"); 
     return 1;
   }
-  
+
+  else {
+    count++;
+    varArray[count-1].name = args[0];
+    varArray[count-1].value = args[2];
+    return 1;
+  }
 }
 
 int listVar(char **args) {
-  
+  printf("Variable List: \n");
+  for (int i = 0; i < count; i++)
+    printf("Name: %p\t Value: %p\n", varArray[i].name, varArray[i].value);
+  return 1;
 }
 
 // Remeber it is an error to unset a built in variable
 int unsetVar(char **args) {
+  if (args[1] == varArray[0].name || args[1] == varArray[1].name || args[1] == varArray[2].name)
+      printf("Error: cannot unset defined variables.");
   
+  else 
+    for (int i = 0; i < count; i++){
+      if (varArray[i].name == args[1])
+        varArray[i].value == NULL;
+    }
+  return 1;
 }
 
-
-//parser
-
-//pass results of scanner to parser
-//don't forget print out error messages 
-
-
-//function to build list of tokens 
-//when scanner returns end of line indication: use list to analyze command
-
-
-
-//is it a command?
-  //#
-
-  //cd
-
-  //variable
-
-  //lv
-
-  //unset variable
-  
-  // !f
+//execute program function
+int execute_program(char **args) {
+ // !
     //fork 
       //after forking, parent should wait for command it has just 
       //started to complete before issuing a promt for next command
@@ -193,22 +190,44 @@ int unsetVar(char **args) {
 
     //execve new process to execute given file
 
-  //quit
+}
+
+int exit(char **args) {
+  //exit with status zero
+  printf("Exiting shell: exit status zero.");
+  return 0;
+}
 
 
-//built in variables?
 
-  //PATH
-
-  //CWD
-
-  //PS
+int shell_execute(char **args) {
 
 
-//Name of program to run?
+  if (args[0] == '#') 
+   return isComment(args);
+  
+  else if (args[0] == 'cd') 
+   return changeDir(args);
+   
+  else if (args[0] == 'lv') 
+   return listVar(args);
+  
+  else if (args[0] == '!') 
+    return execute_program(args);
+    
+  else if (args[0] == 'unset'){
+   return unsetVar(args);
+  }
+
+  else if (args[0] == 'quit' || args[0] == '^D')
+    return exit(args);
+
+  else
+   setVar(args);
+ 
 
 
-//is a parameter of command?
+}
 
 
 void shell_loop(void){
@@ -218,20 +237,21 @@ void shell_loop(void){
   int x;
 
   do {
-    printf("%s",PS);
+    printf("%s",varArray[2].value);
     Fgets(input, MAX, stdin);
     args = shell_scanner(input);
     x = shell_execute(args);
 
-    free(input)
+    free(input);
     free(args);
   } while(x);
+  
 }
 
 int main(int argc, char **argv) {
   // Create built-in variables
   varArray[0].name = "PATH";
-  varArray[0].value = "/bin:/usr/bin"
+  varArray[0].value = "/bin:/usr/bin";
   varArray[1].name = "CWD";
   getcwd(varArray[1].value, sizeof(varArray[1].value));
   varArray[2].name = "PS";
