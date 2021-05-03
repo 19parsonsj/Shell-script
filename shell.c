@@ -110,8 +110,8 @@ int fetchVar(char **args) {
   int foundSigns = 0;
   //Search the tokens for any $. If it is found, the next char should be a letter
   // according to variable assignment rules. If it isn't, it's a syntax error.
-  for (int j = 0; j < numTokens; j++)
-    char *point;
+  for (int j = 0; j < numTokens; j++) {
+    char *point = "p";
     int doAgain = 0;
     char newToken[MAX];
     char newTokenPiece[MAX];
@@ -149,10 +149,10 @@ int fetchVar(char **args) {
      
         // Create a token piece which contains any characters before the variable in the
         // original token
-        position[numVars] = ptr - p;
+        position[numVars] = ptr - args[j];
         for (int k = 0; k < position[numVars]; k++) {
           newTokenPiece[k] = *point;
-          p++;
+          args[j]++;
         }
        
         strcat(newToken, newTokenPiece);
@@ -182,7 +182,7 @@ int fetchVar(char **args) {
           args[j] = newToken
         }
         else
-          p = point;
+          args[j] = point;
       }
       // If there is no '$' character detected, exit the while loop and move to the next token
       else
