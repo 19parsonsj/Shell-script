@@ -25,6 +25,8 @@ struct variable {
 struct variable varArray[MAX_VARS];
 int countVar = 3;
 
+int numTokens = 0;
+
 // Fgets wrapper
 char *Fgets(char *ptr, int n, FILE *stream) {
   char *rptr;
@@ -36,7 +38,6 @@ char *Fgets(char *ptr, int n, FILE *stream) {
 // Takes the user input and makes them into seperate tokens
 char **shell_scanner(char *input) {
   int bufsize = TOKEN_BUFSIZE;
-  int pos = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
   char *token;
 
@@ -46,21 +47,21 @@ char **shell_scanner(char *input) {
   token = strtok(input, TOKEN_WHITESPACE); 
   while (token != NULL) {
     // printf tokens for debugging
-    printf("token %d: %s\n", pos, token);
+    printf("token %d: %s\n", numTokens, token);
     
     tokens[pos] = token;
-    pos++;
+    numTokens++;
 
-    if (pos >= bufsize)
+    if (numTokens >= bufsize)
       dieWithError("too many tokens");
    
     token = strtok(NULL, TOKEN_WHITESPACE);
   }
-  tokens[pos] = NULL;
+  tokens[numTokens] = NULL;
 
   // print tokens for DEBUGGING ONLY
-  for (int i = 0; i < pos; i++)
-    printf("Tokens %d: %s\n", pos, tokens[i]);
+  for (int i = 0; i < numTokens; i++)
+    printf("Tokens %d: %s\n", numTokens, tokens[i]);
   return tokens;
 }
 
@@ -68,6 +69,8 @@ char **shell_scanner(char *input) {
 int changeDir(char **args) {
   if (args[1] == NULL)
     printf("Error: Expected an argument for cd\n");
+  else if (numTokens != 2)
+    printf("Error: Invalid number of arguments.\n");
   else {
     if (chdir(args[1]) != 0)
       printf("Error: Invalid directory\n");
@@ -84,7 +87,7 @@ int isComment(char **args) {
   char *p;
   int foundHash = 0;
   //Search the strings for a #
-  for (int i = 0; i < (sizeof(args)/sizeof(args[0]); i++)
+  for (int i = 0; i < numTokens; i++)
     if (p = strchr(args[i],'#') != NULL)
       foundHash = 1;
   
@@ -107,7 +110,7 @@ int fetchVar(char **args) {
   int foundSigns = 0;
   //Search the tokens for any $. If it is found, the next char should be a letter
   // according to variable assignment rules. If it isn't, it's a syntax error.
-  for (int j = 0; j < (sizeof(args)/sizeof(args[0]); j++)
+  for (int j = 0; j < numTokens; j++)
     char *point;
     int doAgain = 0;
     char newToken[MAX];
@@ -157,7 +160,7 @@ int fetchVar(char **args) {
         // in varArray. If it doesn't exist, it's an error for undefined variable.
         int foundMatches = 0;
         for (int k = 0; k < countVar; k++) {
-          if (strcmp(varArray[k].name,varName) == 0) {
+          if (strcmp(varArray[k].name, varName) == 0) {
             strcat(newToken, varArray[k].value);
             foundMatches++;
           }
@@ -196,19 +199,33 @@ int fetchVar(char **args) {
 // token is "=", then set variable. Note that if "variable = value" has no spaces, (e.g.
 // "variable=value") then it is a syntax error for an unknown command.
 // The only built-in variable that explictly cannot be changed according to the assignment, is CWD.
+// Note that shell_execute tests if there are 3 arguments and the second argument is '=' as this
+// would imply it is a setVar command. Otherwise, it will be labeled as an unknown command
 int setVar(char **args) {
-  // Test if there are 3 tokens. If not, it is an invalid variable assignment.
-  if (sizeof(args) != 3) {
-    printf("Error: Invlaid variable assignment. Expected \"Variable = value\"\n"); 
+  if (isalpha(*args[0]) == 0) {
+    printf("Error: Invalid variable assignment. First character must be numerical.\n");
     return 1;
+  }
+  else if (strcmp(args[0], "CWD") == 0) {
+    printf("Error: Cannot change variable \"CWD\"\n");
+    returns 1;
+  }
+  while (*args[0] != '\0') {
+    if (isalnum(*args[0]) == 0) {
+      printf("Error: Invalid variable assignment. Variable can only be composed of alpha-numerical characters.\n");
+      return 1;
+    }
+    *args[0]++;
   }
 
-  else {
-    count++;
-    varArray[count-1].name = args[0];
-    varArray[count-1].value = args[2];
-    return 1;
-  }
+  // Append a '$' to the beginning of the new variable name to simplify searching for variables.
+  char *ch = "$"
+  char *newName = strcat(ch, args[0]);
+ 
+  varArray[count].name = newName; 
+  varArray[count].value = args[2];
+  count++;
+  return 1;
 }
 
 int listVar(char **args) {
@@ -275,6 +292,9 @@ int shell_execute(char **args) {
   else if (args[0] == 'unset'){
     return unsetVar(args);
   }
+ 
+  else if (numTokens == 3 && args[1] == '=')
+    return setVar(args);
 
   else if (args[0] == 'quit' || args[0] == '^D')
     return exit(args);
