@@ -257,24 +257,26 @@ int listVar(char **args) {
 int unsetVar(char **args) {
   if (args[1] == varArray[0].name || args[1] == varArray[1].name || args[1] == varArray[2].name)
       printf("Error: cannot unset defined variables.");
-  
-  else if {
-    // Find the variable desired to be removed
+  int varFound = 0;
+  // Find the variable desired to be removed
     for (int i = 0; i < count-1; i++){
       if (varArray[i].name == args[1]) {
-        // Once found, 
+        // Once found, replace elements in the array to simulate the element being removed
+        varFound = 1;
         for (i; i < count; i++) {
           varArray[i] = varArray[i+1];
         }
       }
     }
+  if (varFound == 1) {
     // The element has been found and deleted, now decrement count to dispose of the excess variable.
     count--;
+    return 1;
   }
-  else {
+  else { // Else the element wasn't declared, which is an error.
     printf("Error: Could not find the desired variable to remove.");
+    return 1;
   }
-  return 1;
 }
 
 //execute program function
