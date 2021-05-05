@@ -222,10 +222,28 @@ int setVar(char **args) {
   char *ch = "$"
   char *newName = strcat(ch, args[0]);
  
-  varArray[count].name = newName; 
-  varArray[count].value = args[2];
-  count++;
-  return 1;
+  // Make sure this variable has not been declared before. If it has overwrite the value. If it hasn't create a new one.
+  int isNewVar = 0;
+  int overwriteVal = 0;
+ 
+  for (int i = 0; i < count; i++) {
+    if (varArray[i].name == newName) {
+      isNewVar = 1;
+      overwriteVal = i;
+    }
+  }
+ 
+  // There is no need to overwrite the name if the variable has been declared before. Simply overwrite the value.
+  if (isNewVar == 1;) {
+    varArray[overwriteVal].value = args[2];
+    return 1;
+  }
+  else {
+    varArray[count].name = newName; 
+    varArray[count].value = args[2];
+    count++;
+    return 1;
+  }
 }
 
 int listVar(char **args) {
@@ -240,11 +258,22 @@ int unsetVar(char **args) {
   if (args[1] == varArray[0].name || args[1] == varArray[1].name || args[1] == varArray[2].name)
       printf("Error: cannot unset defined variables.");
   
-  else 
-    for (int i = 0; i < count; i++){
-      if (varArray[i].name == args[1])
-        varArray[i].value == NULL;
+  else if {
+    // Find the variable desired to be removed
+    for (int i = 0; i < count-1; i++){
+      if (varArray[i].name == args[1]) {
+        // Once found, 
+        for (i; i < count; i++) {
+          varArray[i] = varArray[i+1];
+        }
+      }
     }
+    // The element has been found and deleted, now decrement count to dispose of the excess variable.
+    count--;
+  }
+  else {
+    printf("Error: Could not find the desired variable to remove.");
+  }
   return 1;
 }
 
