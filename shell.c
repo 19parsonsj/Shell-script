@@ -79,7 +79,7 @@ int changeDir(char **args) {
     if (chdir(args[1]) != 0)
       printf("Error: Invalid directory\n");
     // Update the value of CWD
-    if (getcwd(varArray[1].value, sizeof(varArray[1].value) == NULL))
+    if (getcwd(varArray[1].value, sizeof(varArray[1].value) == '\0'))
         printf("Error: getcwd failure\n");
   }
   return 1;
@@ -134,7 +134,7 @@ int fetchVar(char **args) {
     // variables in a token. It also catches any error and replaces the variables names with
     // their values in **args
     while (doAgain == 1) {
-      if (point == strchr(args[j],'$') != NULL) {
+      if (point == strchr(args[j],'$') != '\0') {
         foundSigns++;
         char varName[MAX];
         int i = 0;
@@ -409,6 +409,10 @@ int i = isComment(args);
   }
   else if ((strcmp(args[0], "quit")) == 0)
     return exit_shell();
+  else {
+    printf("Error: Unknown command");
+      return 1;
+  }
 
 }
 else {
